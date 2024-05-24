@@ -35,7 +35,7 @@ entrypoints==0.4
 executing==0.8.3
 fastjsonschema==2.15.3
 fonttools==4.33.3
-idna==3.3
+idna==3.7
 imageio==2.19.2
 imagesize==1.4.0
 importlib-metadata==4.11.4
