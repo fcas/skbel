@@ -91,7 +91,7 @@ PyYAML==6.0
 pyzmq==23.2.0
 readme-renderer==35.0
 readthedocs-sphinx-search==0.1.2
-requests==2.27.1
+requests==2.32.2
 requests-toolbelt==0.9.1
 rfc3986==2.0.0
 rich==12.4.4
