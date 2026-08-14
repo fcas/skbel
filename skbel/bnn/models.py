@@ -2,17 +2,16 @@
 
 # EXPERIMENTAL FUNCTIONALITY -- USE AT YOUR OWN RISK
 
-import tensorflow as tf
-from sklearn.base import TransformerMixin, MultiOutputMixin, BaseEstimator
-from tensorflow import keras as tfk
 import tensorflow_probability as tfp
+import tf_keras as tfk
+from sklearn.base import BaseEstimator, MultiOutputMixin, TransformerMixin
 
 from skbel.nn_utilities import (
+    MonteCarloDropout,
+    neg_log_likelihood,
+    posterior_mean_field,
     prior_regularize,
     prior_trainable,
-    posterior_mean_field,
-    neg_log_likelihood,
-    MonteCarloDropout,
 )
 
 __all__ = [
@@ -87,6 +86,8 @@ def probabilistic_variational_model(
     """
     if loss is None:
         loss = neg_log_likelihood
+    if isinstance(n_hidden, int):
+        n_hidden = [n_hidden] * n_layers
     variational_layers = [
         tfp.layers.DenseVariational(
             n_hidden[i],
@@ -109,7 +110,7 @@ def probabilistic_variational_model(
                 make_posterior_fn=posterior_mean_field,
                 kl_weight=kl_weight,
                 activation="linear",
-                name=f"dense_output",
+                name="dense_output",
             ),
             tfp.layers.MultivariateNormalTriL(
                 output_shape,
@@ -123,7 +124,7 @@ def probabilistic_variational_model(
     )
 
     # Compile model
-    optimizer = tf.keras.optimizers.Adam()
+    optimizer = tfk.optimizers.Adam()
     model.compile(optimizer=optimizer, loss=loss)
 
     return model
@@ -156,9 +157,7 @@ class PBNN(TransformerMixin, MultiOutputMixin, BaseEstimator):
         )
 
     def fit(self, X, y):
-        self.model.fit(
-            X, y, epochs=self.epochs, batch_size=self.batch_size, verbose=self.verbose
-        )
+        self.model.fit(X, y, epochs=self.epochs, batch_size=self.batch_size, verbose=self.verbose)
         return self
 
     def predict(self, X, n_samples=100):
@@ -235,9 +234,9 @@ def variational_model(
     )
 
     # Compile model
-    optimizer = tf.keras.optimizers.Adam()
+    optimizer = tfk.optimizers.Adam()
     # classic MSE loss:
-    loss = tf.keras.losses.MeanSquaredError()
+    loss = tfk.losses.MeanSquaredError()
     model.compile(optimizer=optimizer, loss=loss)
 
     return model
@@ -285,7 +284,7 @@ def probabilistic_mcd_model(input_shape, output_shape, n_hidden, kl_weight, rate
     )
 
     # Compile model
-    optimizer = tf.keras.optimizers.Adam()
+    optimizer = tfk.optimizers.Adam()
     model.compile(optimizer=optimizer, loss=neg_log_likelihood)
 
     return model
@@ -318,9 +317,9 @@ def epistemic_mcd_model(input_shape, output_shape, n_hidden, kl_weight, rate=0.2
     )
 
     # Compile model
-    optimizer = tf.keras.optimizers.Adam()
+    optimizer = tfk.optimizers.Adam()
     # classic MSE loss:
-    loss = tf.keras.losses.MeanSquaredError()
+    loss = tfk.losses.MeanSquaredError()
     model.compile(optimizer=optimizer, loss=loss)
 
     return model
@@ -340,7 +339,7 @@ def classic_pnn_model(input_shape, output_dim, n_hidden, num_components, learn_r
     for the Adam optimizer. Defaults to 0.001.
 
     Returns:
-    - model_ (tf.keras.Model): A compiled Keras model instance ready for training, predicting a mixture of
+    - model_ (tfk.Model): A compiled Keras model instance ready for training, predicting a mixture of
       normal distributions for each output variable.
 
     Model Architecture:
@@ -377,23 +376,32 @@ def classic_pnn_model(input_shape, output_dim, n_hidden, num_components, learn_r
     """
 
     # Input block
-    inputs = Input(shape=input_shape, name="input")  # Input layer
-    x = Dense(n_hidden)(inputs)  # Simple dense layer with n_hidden units
-    x = Activation("relu")(x)  # ReLU activation function for non-linearity
+    inputs = tfk.layers.Input(shape=input_shape, name="input")  # Input layer
+    x = tfk.layers.Dense(n_hidden)(inputs)  # Simple dense layer with n_hidden units
+    x = tfk.layers.Activation("relu")(x)  # ReLU activation function for non-linearity
 
     # Output block for Mixture Density Network
-    params_size = tfp.layers.MixtureNormal.params_size(num_components, output_dim)  # The number of parameters for
+    params_size = tfp.layers.MixtureNormal.params_size(
+        num_components, output_dim
+    )  # The number of parameters for
     # the mixture model
-    output_params = Dense(params_size, activation=None, name="output")(x)  # Dense layer to compute the mixture
+    output_params = tfk.layers.Dense(params_size, activation=None, name="output")(
+        x
+    )  # Dense layer to compute the mixture
     # density network parameters
-    outputs = tfp.layers.MixtureNormal(num_components, output_dim)(output_params)  # MixtureNormal layer defining a
+    outputs = tfp.layers.MixtureNormal(num_components, output_dim)(
+        output_params
+    )  # MixtureNormal layer defining a
     # mixture of normal distributions for each output variable
 
     # Create and compile the model
-    model_ = Model(inputs=inputs, outputs=outputs)  # Define the model
-    optimizer = tf.keras.optimizers.Adam(learning_rate=learn_r)  # Adam optimizer with the specified learning rate
-    model_.compile(optimizer=optimizer, loss=neg_log_likelihood)  # Compile the model with the negative
+    model_ = tfk.Model(inputs=inputs, outputs=outputs)  # Define the model
+    optimizer = tfk.optimizers.Adam(
+        learning_rate=learn_r
+    )  # Adam optimizer with the specified learning rate
+    model_.compile(
+        optimizer=optimizer, loss=neg_log_likelihood
+    )  # Compile the model with the negative
     # log-likelihood loss function
 
     return model_
-

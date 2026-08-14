@@ -25,9 +25,9 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # -- Project information -----------------------------------------------------
 
-project = 'skbel'
+project = "skbel"
 copyright = f"2019 - {datetime.now().year} Robin Thibaut, Ghent University"
-author = 'Robin Thibaut'
+author = "Robin Thibaut"
 
 # -- General configuration ---------------------------------------------------
 
@@ -51,27 +51,39 @@ extensions = [
     "IPython.sphinxext.ipython_directive",
     "IPython.sphinxext.ipython_console_highlighting",
     "sphinx.ext.inheritance_diagram",
-    'sphinxcontrib.bibtex',
+    "sphinxcontrib.bibtex",
 ]
-bibtex_bibfiles = ['export.bib']
-bibtex_default_style = 'unsrt'
+bibtex_bibfiles = ["export.bib"]
+bibtex_default_style = "unsrt"
 
-autodoc_default_options = {'members': True,
-                           'undoc-members': True,
-                           'private-members': True,
-                           'special-members': '__init__, __call__',
-                           'inherited-members': False,
-                           'show-inheritance': False}
+# Resolve cross-references to sklearn / numpy / scipy docs (silences ~70
+# warnings autodoc emits from inherited sklearn metadata-routing methods).
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/3", None),
+    "numpy": ("https://numpy.org/doc/stable/", None),
+    "scipy": ("https://docs.scipy.org/doc/scipy/", None),
+    "sklearn": ("https://scikit-learn.org/stable/", None),
+    "matplotlib": ("https://matplotlib.org/stable/", None),
+}
+
+autodoc_default_options = {
+    "members": True,
+    "undoc-members": True,
+    "private-members": True,
+    "special-members": "__init__, __call__",
+    "inherited-members": False,
+    "show-inheritance": False,
+}
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+templates_path = ["_templates"]
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
-source_suffix = ['.rst', '.md']
+source_suffix = [".rst", ".md"]
 
 # add_function_parentheses = False
 # pygments_style = "sphinx"
@@ -90,7 +102,7 @@ html_theme = "sphinx_rtd_theme"
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+html_static_path = ["_static"]
 
 # cd = "cd docs"
 # mc = "make clean"

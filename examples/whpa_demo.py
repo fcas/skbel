@@ -2,17 +2,15 @@
 
 import os
 from os.path import join as jp
-import joblib
 
+import numpy as np
+from demo_visualization import plot_results
 from sklearn.cross_decomposition import CCA
 from sklearn.decomposition import PCA
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler, PowerTransformer
+from sklearn.preprocessing import PowerTransformer, StandardScaler
 
-from demo_visualization import plot_results
-
-from skbel import utils
-from skbel import BEL
+from skbel import BEL, utils
 
 
 def init_bel():
@@ -58,36 +56,29 @@ def init_bel():
 
 
 if __name__ == "__main__":
-
     # %% Set directories
     data_dir = jp(os.getcwd(), "dataset")
     # Directory in which to unload forecasts
     sub_dir = jp(os.getcwd(), "results")
 
     # Folders
-    obj_dir = jp(sub_dir, "obj")  # Location to save the BEL model
     fig_data_dir = jp(sub_dir, "data")  # Location to save the raw data figures
-    fig_pca_dir = jp(sub_dir, "pca")  # Location to save the PCA figures
-    fig_cca_dir = jp(sub_dir, "regression_model")  # Location to save the CCA figures
     fig_pred_dir = jp(sub_dir, "uq")  # Location to save the prediction figures
 
     # Creates directories
     [
         utils.dirmaker(f, erase=True)
         for f in [
-            obj_dir,
             fig_data_dir,
-            fig_pca_dir,
-            fig_cca_dir,
             fig_pred_dir,
         ]
     ]
 
     # %% Load dataset
-    X_train = joblib.load(jp(data_dir, "X_train.pkl")).to_numpy()
-    X_test = joblib.load(jp(data_dir, "X_test.pkl")).to_numpy().reshape(1, -1)
-    y_train = joblib.load(jp(data_dir, "y_train.pkl")).to_numpy()
-    y_test = joblib.load(jp(data_dir, "y_test.pkl")).to_numpy().reshape(1, -1)
+    X_train = np.load(jp(data_dir, "X_train.npy"))
+    X_test = np.load(jp(data_dir, "X_test.npy")).reshape(1, -1)
+    y_train = np.load(jp(data_dir, "y_train.npy"))
+    y_test = np.load(jp(data_dir, "y_test.npy")).reshape(1, -1)
 
     # %% Initiate BEL model
     model = init_bel()
@@ -123,4 +114,3 @@ if __name__ == "__main__":
         Y_obs=y_test,
         base_dir=sub_dir,
     )
-
